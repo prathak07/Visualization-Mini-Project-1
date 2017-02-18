@@ -1,0 +1,175 @@
+<!--
+Visualization project 1..
+Create histogram, piechart and force directed layout
+
+Data : Violent Crime Rates by US State
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mini Project 1</title>
+
+  <script type="text/javascript" src="lib/d3.v3.min.js"></script>
+  
+  <style type="text/css">
+    legend,h1 {
+      font-family: sans-serif;
+      font-size: 16px;
+    }
+    .axis path, .axis line {
+      fill: none;
+      stroke: #000;
+    }
+    button {
+      background: #857CC2;
+      color: white;
+      font-family: sans-serif;
+      font-size: 16px;
+    }
+    #nameOfGraph,#propertydropdown {
+      background: white;
+      color: black;
+      font-family: sans-serif;
+      font-size: 16px;
+    }
+  </style>
+
+  <script src="src/graphs.js"></script>
+</head>
+
+<body>
+  <fieldset>
+    <legend>Visualization : Mini Project 1</legend>
+
+    <h1>Violent Crime Rates in USA</h1>
+
+    <select onchange="chooseVariable(this.value,binCount)" id="propertydropdown" autocomplete="off">
+      <option value="">Select Option</option>
+      <option value="1">Murder</option>
+      <option value="2">Assault</option>
+      <option value="3">UrbanPop</option>
+      <option value="4">Rape</option>
+    </select>
+
+    <button id="nameOfGraph"><div id="graphName">None</div></button>
+
+    <button id = "binCountUpdate">Press and drag on me... To change binCount...<div id="binsCount">10</div></button>
+    <button id = "lengthUpdate">Press and drag on me... To change edgeLength...<div id="edgeLength">120</div></button>
+
+    <div id = "bar" ></div>
+    <div id = "chart"></div>
+    <div id = "forceD"></div>
+
+    <script type="text/javascript">
+      
+      var yMax = 0;
+      var yMin = 0;
+      var color = "#857CC2";
+
+      var binCount = 10;
+      var edgeLength = 120;
+
+      var w = window.innerWidth - 200;
+      var h = window.innerHeight- 250;
+      var barPadding = 0.02 * w;
+
+      var currentFigure = 0;
+
+      var array1 = [];
+      var array2 = [];
+      var array3 = [];
+      var array4 = [];
+
+      d3.csv("data/USArrests.csv", function(data) {
+        data.forEach(function(d) {
+          array1.push(Number(d.Murder));
+          array2.push(Number(d.Assault));
+          array3.push(Number(d.UrbanPop));
+          array4.push(Number(d.Rape));
+        })
+      });
+
+      var currentColumn = 0;
+
+      function chooseVariable(val) {
+        if(val=="1") {
+          MurderHist();
+        }
+        else if(val=="2") {
+          AssaultHist();
+        }
+        else if(val=="3") {
+          UrbanPopHist();
+        }
+        else if(val=="4") {
+          RapeHist();
+        }
+        else {
+          d3.select('svg').selectAll('*').remove();
+
+        }
+      }
+
+      function MurderHist() {
+        currentColumn = 0;
+        fillData(array1,binCount);
+      }
+
+      function AssaultHist() {
+        currentColumn = 1;
+        fillData(array2,binCount);
+      }
+
+      function UrbanPopHist() {
+        currentColumn = 2;
+        fillData(array3,binCount);
+      }
+
+      function RapeHist() {
+        currentColumn = 3;
+        fillData(array4,binCount);
+      }
+
+      function fillData(array, bin){
+        d3.select('svg').selectAll('*').remove();
+
+        var bins = d3.layout.histogram()
+                     .bins(binCount)
+                     (array);
+
+        var widthBin = bins[0].dx;
+
+        var dataArray = [];
+
+        for(var i=0;i<bins.length;i++) {
+          dataArray[i] = bins[i].length;
+        }
+        
+        yMax = d3.max(bins, function(d){return d.length});
+        yMin = d3.min(bins, function(d){return d.length});
+
+        if(currentFigure == 0) {
+          document.getElementById("bar").innerHTML = '';
+          createHist(dataArray);
+        }
+        else if(currentFigure==1) {
+          document.getElementById("chart").innerHTML = '';
+          createPie(dataArray);
+        }
+
+        else if(currentFigure==2) {
+          document.getElementById("forceD").innerHTML = '';
+          createForceD(dataArray,edgeLength);
+        }  
+
+      }
+
+      activatebinCount();
+      activateLengthChange();
+
+    </script>
+  </fieldset>
+</body>
+</html>
